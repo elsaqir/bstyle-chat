@@ -16,8 +16,16 @@ export const chatService = {
       }
 
       const text = await response.text();
-      let data;
       
+      // Check for empty or whitespace-only response
+      if (!text || !text.trim()) {
+        return {
+          message: 'عذراً، تم استلام رد فارغ من الخادم. يرجى المحاولة مرة أخرى.',
+          status: 'error'
+        };
+      }
+
+      let data;
       try {
         data = JSON.parse(text);
       } catch (parseError) {
