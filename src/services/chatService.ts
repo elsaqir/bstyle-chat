@@ -15,9 +15,22 @@ export const chatService = {
         throw new Error(`API error: ${response.status}`);
       }
 
-      const data = await response.json();
+      const text = await response.text();
+      let data;
+      
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('JSON Parse Error:', parseError);
+        console.log('Raw response:', text);
+        return {
+          message: 'عذراً، حدث خطأ في معالجة الرد. يرجى المحاولة مرة أخرى.',
+          status: 'error'
+        };
+      }
+
       return { 
-        message: data.reply || data.message || 'عذراً، لم أتمكن من فهم الرسالة.',
+        message: data?.reply || data?.message || 'عذراً، لم أتمكن من فهم الرسالة.',
         status: 'success' 
       };
     } catch (error) {
