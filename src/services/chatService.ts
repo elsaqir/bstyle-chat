@@ -7,7 +7,10 @@ export const chatService = {
     try {
       const response = await fetch(WEBHOOK_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({ message: content }),
       });
 
@@ -15,30 +18,10 @@ export const chatService = {
         throw new Error(`API error: ${response.status}`);
       }
 
-      const text = await response.text();
+      const data = await response.json();
       
-      // Check for empty or whitespace-only response
-      if (!text || !text.trim()) {
-        return {
-          message: 'عذراً، تم استلام رد فارغ من الخادم. يرجى المحاولة مرة أخرى.',
-          status: 'error'
-        };
-      }
-
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (parseError) {
-        console.error('JSON Parse Error:', parseError);
-        console.log('Raw response:', text);
-        return {
-          message: 'عذراً، حدث خطأ في معالجة الرد. يرجى المحاولة مرة أخرى.',
-          status: 'error'
-        };
-      }
-
       return { 
-        message: data?.reply || data?.message || 'عذراً، لم أتمكن من فهم الرسالة.',
+        message: data.reply || data.message || 'عذراً، لم أتمكن من فهم الرسالة.',
         status: 'success' 
       };
     } catch (error) {
