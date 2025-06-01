@@ -14,31 +14,39 @@ export const chatService = {
         body: JSON.stringify({ message: content }),
       });
 
+      // First check if the response is ok
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        throw new Error(`HTTP error: ${response.status}`);
       }
 
-      // Check if response is empty
-      const contentLength = response.headers.get('content-length');
-      const contentType = response.headers.get('content-type');
+      // Get the response text first
+      const text = await response.text();
       
-      if (contentLength === '0' || !contentType?.includes('application/json')) {
+      // Check if we have any content
+      if (!text.trim()) {
+        return {
+          message: 'عذراً، لم يتم استلام رد من الخادم.',
+          status: 'error'
+        };
+      }
+
+      // Try to parse the JSON
+      try {
+        const data = JSON.parse(text);
+        return {
+          message: data.reply || data.message || 'عذراً، لم أتمكن من فهم الرسالة.',
+          status: 'success'
+        };
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
         return {
           message: 'عذراً، تم استلام رد غير صالح من الخادم.',
           status: 'error'
         };
       }
-
-      // Only try to parse JSON if we have a valid response
-      const data = await response.json();
-      
-      return { 
-        message: data.reply || data.message || 'عذراً، لم أتمكن من فهم الرسالة.',
-        status: 'success' 
-      };
     } catch (error) {
       console.error('Webhook error:', error);
-      return { 
+      return {
         message: 'عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.',
         status: 'error'
       };
