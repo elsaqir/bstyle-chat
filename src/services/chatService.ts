@@ -18,6 +18,18 @@ export const chatService = {
         throw new Error(`API error: ${response.status}`);
       }
 
+      // Check if response is empty
+      const contentLength = response.headers.get('content-length');
+      const contentType = response.headers.get('content-type');
+      
+      if (contentLength === '0' || !contentType?.includes('application/json')) {
+        return {
+          message: 'عذراً، تم استلام رد غير صالح من الخادم.',
+          status: 'error'
+        };
+      }
+
+      // Only try to parse JSON if we have a valid response
       const data = await response.json();
       
       return { 
